@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Draftly</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Override API base at deploy time -->
+  <script>
+    window.API_BASE = window.API_BASE || "http://localhost:4000/api";
+  </script>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="bg-gradient-to-br from-slate-50 to-slate-200 min-h-screen text-slate-800">
+  <!-- Header -->
+  <header class="border-b bg-white/90 backdrop-blur sticky top-0 z-10">
+    <div class="w-full px-3 lg:px-5 py-2 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="h-10 w-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold">D</div>
+        <div>
+          <p class="text-lg font-semibold">Draftly</p>
+          <p class="text-xs text-slate-500">AI-powered inbox</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <button id="logout-btn" class="px-3 py-2 border border-slate-200 rounded-lg hover:bg-slate-100 hidden">Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main App Container -->
+  <main class="w-full px-2 md:px-4 py-3">
+    <div id="toast-container" class="fixed top-2 right-4 z-50 flex flex-col gap-2 items-end"></div>
+    <!-- Login Section -->
+    <div id="login-section" class="flex items-center justify-center py-20">
+      <div class="glass-card rounded-2xl p-10 shadow-xl w-full max-w-4xl">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+          <div class="lg:col-span-1">
+            <h2 class="text-2xl font-bold mb-2">Welcome to Draftly</h2>
+            <p class="text-slate-500 mb-4">Connect your email provider to sync your inbox and let AI handle your drafts.</p>
+            <p class="text-xs text-slate-400">More providers coming soon.</p>
+          </div>
+          <div class="lg:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="border border-slate-200 rounded-xl p-4 flex flex-col gap-3">
+              <div class="flex items-center gap-2">
+                <span class="h-3 w-3 rounded-full bg-emerald-500"></span>
+                <p class="font-semibold">Google (Gmail)</p>
+              </div>
+              <p class="text-sm text-slate-500">Connect to Gmail to fetch threads and send replies.</p>
+              <button id="login-btn-hero" class="px-4 py-2 bg-indigo-600 text-white rounded-lg shadow hover:bg-indigo-700 w-full">Continue with Google</button>
+            </div>
+            <div class="border border-slate-200 rounded-xl p-4 flex flex-col gap-3 opacity-60 cursor-not-allowed">
+              <div class="flex items-center gap-2">
+                <span class="h-3 w-3 rounded-full bg-amber-400"></span>
+                <p class="font-semibold">Microsoft (Outlook)</p>
+              </div>
+              <p class="text-sm text-slate-500">Planned support for Outlook/Office 365.</p>
+              <button disabled class="px-4 py-2 bg-slate-200 text-slate-500 rounded-lg w-full">Coming soon</button>
+            </div>
+            <div class="border border-slate-200 rounded-xl p-4 flex flex-col gap-3 opacity-60 cursor-not-allowed">
+              <div class="flex items-center gap-2">
+                <span class="h-3 w-3 rounded-full bg-amber-400"></span>
+                <p class="font-semibold">IMAP / Custom</p>
+              </div>
+              <p class="text-sm text-slate-500">Planned support for other mail providers.</p>
+              <button disabled class="px-4 py-2 bg-slate-200 text-slate-500 rounded-lg w-full">Coming soon</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mailbox Section -->
+    <div id="mailbox-section" class="hidden grid grid-cols-1 lg:grid-cols-[repeat(14,minmax(0,1fr))] gap-2 items-stretch">
+      <!-- Icon rail -->
+      <aside class="hidden lg:flex lg:col-span-1 glass-card rounded-2xl p-1 shadow-lg lg:h-[calc(100vh-90px)] flex-col items-center gap-2">
+        <button id="sidebar-toggle" class="h-8 w-8 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-600 text-sm" title="Collapse sidebar">☰</button>
+        <div class="h-9 w-9 rounded-full bg-indigo-600 text-white flex items-center justify-center font-semibold text-sm">D</div>
+        <button class="h-8 w-8 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-600 text-sm" title="Inbox">📥</button>
+        <button class="h-8 w-8 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-600 text-sm" title="Starred">⭐</button>
+        <button class="h-8 w-8 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-600 text-sm" title="Drafts">📄</button>
+        <button class="h-8 w-8 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-600 text-sm" title="Settings">⚙️</button>
+      </aside>
+
+      <!-- Sidebar -->
+      <aside id="sidebar-panel" class="hidden lg:flex lg:col-span-2 glass-card rounded-2xl p-2 shadow-lg lg:h-[calc(100vh-90px)] flex-col">
+        <div class="flex items-center gap-2 mb-4">
+          <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+          <span class="text-sm text-slate-500">Connected</span>
+        </div>
+        <nav class="space-y-2">
+          <button id="inbox-nav" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-indigo-50 text-left font-medium text-indigo-700 bg-indigo-100">Inbox</button>
+          <button id="drafts-nav" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100 text-left">Drafts</button>
+        </nav>
+        <div class="mt-6 space-y-3">
+          <p class="text-xs text-slate-500">Labels</p>
+          <div class="space-y-2 text-sm text-slate-700">
+            <div class="flex items-center gap-2"><span class="h-2 w-2 bg-sky-400 rounded-full"></span>Work</div>
+            <div class="flex items-center gap-2"><span class="h-2 w-2 bg-amber-400 rounded-full"></span>Personal</div>
+            <div class="flex items-center gap-2"><span class="h-2 w-2 bg-emerald-400 rounded-full"></span>AI drafts</div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Message List + Reading Pane -->
+      <section id="main-pane" class="col-span-1 lg:col-span-11 glass-card rounded-2xl shadow-lg lg:h-[calc(100vh-90px)] overflow-hidden grid grid-cols-1 lg:grid-cols-12">
+        <div class="col-span-1 lg:col-span-4 lg:border-r border-slate-200 flex flex-col min-h-0">
+          <div class="px-2 py-1.5 border-b border-slate-200 flex items-center gap-3">
+            <div class="relative flex-1">
+              <input type="text" placeholder="Search mail" class="w-full rounded-full border border-slate-200 px-4 py-1.5 pl-10 focus:outline-none focus:ring-2 focus:ring-indigo-200" />
+              <span class="absolute left-3 top-2.5 text-slate-400">🔍</span>
+            </div>
+            <button class="h-10 w-10 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-500" title="Refresh">↻</button>
+          </div>
+          <ul id="email-list" class="flex-1 overflow-y-auto divide-y divide-slate-100 pr-1 min-h-0"></ul>
+        </div>
+
+        <div class="col-span-1 lg:col-span-8 flex flex-col overflow-hidden min-h-0">
+          <div class="p-2 border-b border-slate-200 flex items-center justify-between">
+            <div>
+              <h3 id="email-subject" class="text-xl font-semibold line-clamp-1"></h3>
+            </div>
+          </div>
+          <div class="p-2 flex-1 flex flex-col gap-2 overflow-hidden min-h-0" id="email-viewer">
+            <div id="email-meta" class="flex items-center justify-between text-sm text-slate-500">
+              <div class="flex flex-col">
+                <span id="email-from" class="font-medium text-slate-700"></span>
+                <span id="email-to"></span>
+              </div>
+              <span id="email-date"></span>
+            </div>
+            <div class="flex-1 min-h-0 overflow-hidden">
+              <div id="email-body" class="prose prose-sm max-w-none text-slate-700 h-full overflow-y-auto p-4 rounded-xl border border-slate-100 bg-white/60 shadow-inner"></div>
+            </div>
+            <div id="draft-section" class="relative bg-slate-50 border border-slate-200 rounded-xl p-2 flex flex-col gap-2">
+              <div class="flex flex-wrap items-center justify-between gap-3">
+                <h4 class="font-semibold">Draft reply</h4>
+                <div class="flex items-center gap-2 flex-wrap">
+                  <label for="tone-select" class="text-xs text-slate-500">Tone:</label>
+                  <select id="tone-select" class="text-sm border border-slate-200 rounded-md px-2 py-1 bg-white">
+                    <option value="concise" selected>Concise</option>
+                    <option value="formal">Formal</option>
+                    <option value="friendly">Friendly</option>
+                  </select>
+                  <div class="flex flex-wrap items-center gap-2">
+                    <button id="generate-btn" class="px-2 py-1 bg-indigo-600 text-white text-sm rounded-lg flex items-center gap-2">
+                      <span>Generate</span>
+                      <span id="generate-spinner" class="hidden spinner spinner-sm border-white/70 border-t-transparent"></span>
+                    </button>
+                    <button id="save-btn" class="px-2 py-1 bg-slate-800 text-white text-sm rounded-lg flex items-center gap-2">
+                      <span>Save</span>
+                      <span id="save-spinner" class="hidden spinner spinner-sm border-white/70 border-t-transparent"></span>
+                    </button>
+                    <button id="send-btn" class="px-2 py-1 bg-emerald-600 text-white text-sm rounded-lg flex items-center gap-2">
+                      <span>Send</span>
+                      <span id="send-spinner" class="hidden spinner spinner-sm border-white/70 border-t-transparent"></span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <textarea id="draft-body" class="w-full h-40 rounded-lg border border-slate-200 p-2 focus:outline-none focus:ring-2 focus:ring-indigo-200" placeholder="Write your reply..."></textarea>
+              <div id="draft-actions-fab" class="fab-container hidden">
+                <button id="approve-btn" class="fab-btn fab-approve text-xs" title="Approve">✔</button>
+                <button id="reject-btn" class="fab-btn fab-reject text-xs" title="Reject">✕</button>
+              </div>
+            </div>
+            <div id="empty-viewer" class="flex-1 flex items-center justify-center text-slate-400">Select an email to view</div>
+          </div>
+        </section>
+      </div>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

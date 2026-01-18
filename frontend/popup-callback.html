@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>OAuth Callback</title>
+  </head>
+  <body>
+    <script>
+      // Parse tokens from query string
+      const params = new URLSearchParams(window.location.search);
+      const accessToken = params.get("accessToken");
+      const refreshToken = params.get("refreshToken");
+
+      if (accessToken && refreshToken) {
+        const channel = new BroadcastChannel("draftly-auth");
+          channel.postMessage({
+            accessToken,
+            refreshToken
+          });
+          channel.close();
+      }
+
+      // Close popup
+      window.close();
+    </script>
+  </body>
+</html>
