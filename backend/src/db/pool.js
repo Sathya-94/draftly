@@ -1,5 +1,10 @@
+import { setDefaultResultOrder } from 'dns';
 import pkg from 'pg';
 import { env } from '../config/env.js';
+
+// Prefer IPv4 to avoid ENETUNREACH issues on hosts without IPv6 egress
+setDefaultResultOrder?.('ipv4first');
+
 const { Pool } = pkg;
 
 const useConnectionString = !!process.env.DATABASE_URL;

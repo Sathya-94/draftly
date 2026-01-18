@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS users (
   google_id VARCHAR(255) UNIQUE,
   access_token TEXT,
   refresh_token TEXT,
+  draftly_refresh_token TEXT,
   token_expiry TIMESTAMP,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
