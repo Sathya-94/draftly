@@ -1,5 +1,5 @@
 import { OpenAIProvider } from "../llm/openaiprovider.js";
-import { GeminiProvider } from "../llm/geminiProvider.js";
+import { GeminiProvider } from "../llm/geminiprovider.js";
 
 export function getProvider(name, apiKey) {
   switch (name) {
