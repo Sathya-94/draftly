@@ -2,6 +2,7 @@ import { setDefaultResultOrder } from 'dns';
 import pkg from 'pg';
 import { env } from '../config/env.js';
 
+
 // Prefer IPv4 to avoid ENETUNREACH issues on hosts without IPv6 egress
 setDefaultResultOrder?.('ipv4first');
 
@@ -33,7 +34,13 @@ const useConnectionString = !!process.env.DATABASE_URL;
 
 export const pool = new Pool(
   useConnectionString
-    ? buildConfigFromUrl(process.env.DATABASE_URL)
+    ? {
+        connectionString: process.env.DATABASE_URL,
+        // Recommended: add a limit to how many clients the pool holds
+        max: 20, 
+        idleTimeoutMillis: 30000,
+        connectionTimeoutMillis: 2000,
+      }
     : {
         host: process.env.DB_HOST,
         port: process.env.DB_PORT,

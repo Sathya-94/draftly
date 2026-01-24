@@ -12,12 +12,23 @@
       const refreshToken = params.get("refreshToken");
 
       if (accessToken && refreshToken) {
-        const channel = new BroadcastChannel("draftly-auth");
-          channel.postMessage({
-            accessToken,
-            refreshToken
-          });
+        // BroadcastChannel (primary)
+        try {
+          const channel = new BroadcastChannel("draftly-auth");
+          channel.postMessage({ accessToken, refreshToken });
           channel.close();
+        } catch (err) {
+          console.error("BroadcastChannel unavailable", err);
+        }
+
+        // postMessage fallback to opener (same-origin)
+        try {
+          if (window.opener && window.opener.location?.origin === window.location.origin) {
+            window.opener.postMessage({ accessToken, refreshToken }, window.location.origin);
+          }
+        } catch (err) {
+          console.error("postMessage to opener failed", err);
+        }
       }
 
       // Close popup

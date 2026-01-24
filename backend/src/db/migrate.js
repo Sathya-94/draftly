@@ -3,7 +3,7 @@ import path from 'path';
 import { pool } from './pool.js';
 
 async function runMigrations() {
-  const migrationsDir = path.join(process.cwd(), 'src/db/migrations');
+  const migrationsDir = path.join(process.cwd(), 'migrations');
   const files = fs.readdirSync(migrationsDir).sort();
 
   for (const file of files) {

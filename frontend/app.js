@@ -450,12 +450,26 @@ async function saveDraft(draftId, body) {
     }
 }
 
-  // Listen for tokens via BroadcastChannel
-  const channel = new BroadcastChannel("draftly-auth");
-  channel.onmessage = (event) => {
-    setTokens(event.data);
-    showMailbox();
-  };
+  // Listen for tokens via BroadcastChannel (primary) and postMessage (fallback)
+  try {
+    const channel = new BroadcastChannel("draftly-auth");
+    channel.onmessage = (event) => {
+      setTokens(event.data);
+      showMailbox();
+    };
+  } catch (err) {
+    console.error("BroadcastChannel unavailable", err);
+  }
+
+  window.addEventListener("message", (event) => {
+    // Only trust messages from same origin
+    if (event.origin !== window.location.origin) return;
+    const { accessToken, refreshToken } = event.data || {};
+    if (accessToken && refreshToken) {
+      setTokens({ accessToken, refreshToken });
+      showMailbox();
+    }
+  });
 
   // Open popup on login click
   if (loginBtnHero) {
