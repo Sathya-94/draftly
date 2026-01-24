@@ -16,7 +16,17 @@ import { nonceMiddleware } from './middleware/noncemiddleware.js';
 const app = express();
 
 app.use(helmet());
-const allowedOrigin = process.env.FRONTEND_URL || 'http://127.0.0.1:5500';
+
+// Derive CORS origin from FRONTEND_URL (strip any path so it matches the browser Origin header)
+const frontendUrl = process.env.FRONTEND_URL || 'http://127.0.0.1:5500';
+let allowedOrigin = frontendUrl;
+try {
+  allowedOrigin = new URL(frontendUrl).origin;
+} catch {
+  // fall back to raw env value if parsing fails
+  allowedOrigin = frontendUrl;
+}
+
 app.use(cors({ origin: allowedOrigin, credentials: true }));
 app.use(express.json({ limit: '1mb' }));
 app.use(morgan('dev'));
