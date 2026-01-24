@@ -47,3 +47,5 @@ Backend: `npm run dev`, `npm start`, `npm run lint`, `npm run format`.
 ## Notes
 - Only approved drafts are sent; rejected/not-approved returns clear errors.
 - Toasts and spinners cover loading/sending/generating; approve/reject FABs appear when draft content exists.
+
+- 
